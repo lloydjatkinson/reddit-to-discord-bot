@@ -2,21 +2,27 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using RedditToDiscordBot.Services.Discord.Embeds;
-
-namespace RedditToDiscordBot.Services
+namespace RedditToDiscordBot.Services.Discord.Embeds
 {
     public class DiscordMessage
     {
-        public IEnumerable<DiscordEmbed> Embeds { get; }
+        public string Content { get; }
 
-        public DiscordMessage(IEnumerable<DiscordEmbed> embeds)
+        public IEnumerable<DiscordEmbed> Embeds { get; } = Enumerable.Empty<DiscordEmbed>();
+
+        public DiscordMessage(string content)
+        {
+            Content = content;
+        }
+
+        public DiscordMessage(string content, IEnumerable<DiscordEmbed> embeds)
         {
             if (embeds.Count() > 10)
             {
                 throw new ArgumentOutOfRangeException(nameof(embeds), "A Discord message may only contain a maximum of 10 embeds.");
             }
 
+            Content = content;
             Embeds = embeds;
         }
     }

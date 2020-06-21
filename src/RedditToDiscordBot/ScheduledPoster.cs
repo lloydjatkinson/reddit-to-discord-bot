@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -8,16 +7,18 @@ using CSharpFunctionalExtensions;
 using Microsoft.Extensions.Logging;
 
 using Quartz;
-using Quartz.Xml;
 
 using RedditToDiscordBot.Services.Discord;
+using RedditToDiscordBot.Services.Discord.Embeds;
 using RedditToDiscordBot.Services.RedditApi;
+using RedditToDiscordBot.Services.Uptime;
 
 namespace RedditToDiscordBot
 {
     public class ScheduledPoster : IJob
     {
         private readonly ILogger<ScheduledPoster> _logger;
+        private readonly IUptime _uptime;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IRedditPostsRetriever _redditPostsRetriever;
         private readonly IDiscordWebHooks _discordWebHooks;
@@ -25,9 +26,11 @@ namespace RedditToDiscordBot
         public ScheduledPoster(ILogger<ScheduledPoster> logger,
             IHttpClientFactory httpClientFactory,
             IRedditPostsRetriever redditPostsRetriever,
-            IDiscordWebHooks discordWebHooks)
+            IDiscordWebHooks discordWebHooks,
+            IUptime uptime)
         {
             _logger = logger;
+            _uptime = uptime;
             _httpClientFactory = httpClientFactory;
             _redditPostsRetriever = redditPostsRetriever;
             _discordWebHooks = discordWebHooks;
@@ -36,6 +39,7 @@ namespace RedditToDiscordBot
         public async Task Execute(IJobExecutionContext context)
         {
             _logger.LogInformation("I ran!");
+            _logger.LogInformation("Uptime: {0}", _uptime.Bot.Friendly);
 
             _redditPostsRetriever.Initialise();
 
@@ -57,9 +61,26 @@ namespace RedditToDiscordBot
                 }
             );
 
-            
+            var posts = popular.Concat(controversial);
 
+            if (posts.Any())
+            {
+                // For now, just grab the first three. Eventually this could be "take three random" to mix things up a bit, maybe look at actual votes or awards.
+                var subset = posts.Take(3);
 
+                var highlights = subset
+                    .Select(post => new DiscordEmbed(
+                       title: post.Title,
+                       description: null,
+                       url: post.PermaLink,
+                       timestamp: post.Posted,
+                       color: 0xFF0000, // TODO: Find out a way of getting the nearest best colour - subreddit colour, user flair, etc. Maybe even a list of subreddit colours in config?
+                       thumbnail: new DiscordEmbedThumbnail(post.Thumbnail),
+                       footer: null
+                    ));
+
+                await _discordWebHooks.SendMessageAsync(new DiscordMessage("Todays highlights", highlights));
+            }
 
             await Task.CompletedTask;
         }
