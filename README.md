@@ -1,3 +1,5 @@
+![.NET Core](https://github.com/lloydjatkinson/reddit-to-discord-bot/workflows/.NET%20Core/badge.svg?branch=master)
+
 # RedditToDiscordBot
 
 RedditToDiscordBot is a "bot" which posts some popular as well as some controversial (downvoted) Reddit posts to any server it is invited to. It's basically just for fun and to find interesting posts or the latest memes. It runs on a schedule - a couple of times a day it will query Reddit's API and then post them to Discord in the form of a message with embeds.
