@@ -35,7 +35,6 @@ namespace RedditToDiscordBot
                 .WithIdentity("posting-job", "common")
                 .Build();
 
-
             var everyDayMorning = TriggerBuilder.Create()
                 .WithIdentity("every-day-morning", "common")
                 .WithSchedule(CronScheduleBuilder.AtHourAndMinuteOnGivenDaysOfWeek(10, 00, DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday, DayOfWeek.Saturday, DayOfWeek.Sunday))

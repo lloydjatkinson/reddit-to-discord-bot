@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace RedditToDiscordBot.Services.RedditApi
 {
+    [DebuggerDisplay("{PermaLink}")]
     public class RedditPost
     {
         public Uri PermaLink { get; }

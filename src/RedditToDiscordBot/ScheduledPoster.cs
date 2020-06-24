@@ -41,9 +41,9 @@ namespace RedditToDiscordBot
             _logger.LogInformation("I ran!");
             _logger.LogInformation("Uptime: {0}", _uptime.Bot.Friendly);
 
-            _redditPostsRetriever.Initialise();
+            //_redditPostsRetriever.Initialise();
 
-            var popular = (await _redditPostsRetriever.GetMostPopularTodayAsync("all")).Match(
+            var popular = (await _redditPostsRetriever.GetMostPopularTodayAsync("programming")).Match(
                 Some: posts => posts,
                 None: () =>
                 {
@@ -52,7 +52,7 @@ namespace RedditToDiscordBot
                 }
             );
 
-            var controversial = (await _redditPostsRetriever.GetMostControversialTodayAsync("all")).Match(
+            var controversial = (await _redditPostsRetriever.GetMostControversialTodayAsync("programming")).Match(
                 Some: posts => posts,
                 None: () =>
                 {
@@ -63,6 +63,8 @@ namespace RedditToDiscordBot
 
             var posts = popular.Concat(controversial);
 
+            //var posts = new List<RedditPost>() { new RedditPost(new Uri("https://google.com"), "Test Message", DateTimeOffset.UtcNow, null) };
+
             if (posts.Any())
             {
                 // For now, just grab the first three. Eventually this could be "take three random" to mix things up a bit, maybe look at actual votes or awards.
@@ -71,7 +73,7 @@ namespace RedditToDiscordBot
                 var highlights = subset
                     .Select(post => new DiscordEmbed(
                        title: post.Title,
-                       description: null,
+                       description: ":medal:",
                        url: post.PermaLink,
                        timestamp: post.Posted,
                        color: 0xFF0000, // TODO: Find out a way of getting the nearest best colour - subreddit colour, user flair, etc. Maybe even a list of subreddit colours in config?
@@ -79,7 +81,7 @@ namespace RedditToDiscordBot
                        footer: null
                     ));
 
-                await _discordWebHooks.SendMessageAsync(new DiscordMessage("Todays highlights", highlights));
+                await _discordWebHooks.SendMessageAsync(new DiscordMessage(string.Empty, highlights));
             }
 
             await Task.CompletedTask;

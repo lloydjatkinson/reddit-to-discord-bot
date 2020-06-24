@@ -1,6 +1,11 @@
+using System;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+
+using Polly;
+using Polly.Contrib.WaitAndRetry;
 
 using Quartz.DependencyInjection.Microsoft.Extensions;
 
@@ -34,8 +39,13 @@ namespace RedditToDiscordBot
                     services.AddSingleton<IUptime, Uptime>();
                     services.AddQuartz();
                     services.AddHttpClient();
-                    services.AddTransient<IRedditPostsRetriever, RedditPostsdiscordEmbed>();
-                    services.AddTransient<IDiscordWebHooks, DiscordWebHooks>();
+                    services
+                        .AddHttpClient<IDiscordWebHooks, DiscordWebHooks>()
+                        .AddTransientHttpErrorPolicy(policy => policy.WaitAndRetryAsync(Backoff.DecorrelatedJitterBackoffV2(medianFirstRetryDelay: TimeSpan.FromSeconds(1), retryCount: 10)));
+                    services
+                        .AddHttpClient<IRedditPostsRetriever, RedditPostRetrieverV2>()
+                        .AddTransientHttpErrorPolicy(policy => policy.WaitAndRetryAsync(Backoff.DecorrelatedJitterBackoffV2(medianFirstRetryDelay: TimeSpan.FromSeconds(1), retryCount: 10)));
+                    //services.AddTransient<IRedditPostsRetriever, RedditPostRetrieverV2>();
                     services.AddTransient<ScheduledPoster>();
                     services.AddHostedService<Worker>();
                 });

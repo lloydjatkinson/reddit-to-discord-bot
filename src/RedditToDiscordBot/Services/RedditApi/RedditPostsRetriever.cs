@@ -9,6 +9,7 @@ using CSharpFunctionalExtensions;
 using Microsoft.Extensions.Logging;
 
 using Reddit;
+using Reddit.Inputs;
 
 namespace RedditToDiscordBot.Services.RedditApi
 {
@@ -34,8 +35,8 @@ namespace RedditToDiscordBot.Services.RedditApi
             try
             {
                 _logger.LogInformation("Getting most popular posts today for: /r/{0}", subreddit);
-                var test = _redditClient.Subreddit(subreddit).Description;
-                var popular = _redditClient.Subreddit(subreddit).Posts.Top;
+                var popular = _redditClient.Subreddit(subreddit).Posts.Best;
+                var topPost = _redditClient.Models.Listings.Top(new TimedCatSrListingInput(), "programming").Data;
 
                 var posts = popular.Select(post => new RedditPost(new Uri($"https://reddit.com{post.Permalink}"), post.Title, post.Created, Uri.IsWellFormedUriString(post.Listing.Thumbnail, UriKind.Absolute) ? post.Listing.Thumbnail : string.Empty));
 
@@ -55,7 +56,7 @@ namespace RedditToDiscordBot.Services.RedditApi
             try
             {
                 _logger.LogInformation("Getting most controversial posts today for: /r/{0}", subreddit);
-                var controversial = _redditClient.Subreddit(subreddit).Posts.Controversial;
+                var controversial = _redditClient.Subreddit(subreddit).Posts.GetControversial();
 
                 var posts = controversial.Select(post => new RedditPost(new Uri($"https://reddit.com{post.Permalink}"), post.Title, post.Created, Uri.IsWellFormedUriString(post.Listing.Thumbnail, UriKind.Absolute) ? post.Listing.Thumbnail : string.Empty));
 
