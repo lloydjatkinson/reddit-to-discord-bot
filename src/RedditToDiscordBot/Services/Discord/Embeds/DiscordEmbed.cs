@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace RedditToDiscordBot.Services.Discord.Embeds
 {
@@ -18,7 +20,10 @@ namespace RedditToDiscordBot.Services.Discord.Embeds
 
         public DiscordEmbedThumbnail Thumbnail { get; }
 
-        public DiscordEmbed(string title, string description, Uri url, DateTimeOffset timestamp, int color, DiscordEmbedThumbnail thumbnail, DiscordEmbedFooter footer)
+        public IEnumerable<DiscordEmbedField> Fields { get; }
+
+        // TODO: Make a fluent builder API perhaps.
+        public DiscordEmbed(string title, string description, Uri url, DateTimeOffset timestamp, int color, DiscordEmbedThumbnail thumbnail, DiscordEmbedFooter footer, IEnumerable<DiscordEmbedField> fields)
         {
             Title = title;
             Description = description;
@@ -26,6 +31,7 @@ namespace RedditToDiscordBot.Services.Discord.Embeds
             Timestamp = timestamp;
             Color = color;
             Thumbnail = thumbnail;
+            Fields = fields;
             //Footer = footer;
         }
     }

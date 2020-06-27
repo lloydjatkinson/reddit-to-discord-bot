@@ -42,7 +42,7 @@ namespace RedditToDiscordBot.Services.RedditApi.Response
         public bool Hidden { get; set; }
 
         [JsonPropertyName("pwls")]
-        public int Pwls { get; set; }
+        public int? Pwls { get; set; }
 
         [JsonPropertyName("link_flair_css_class")]
         public string LinkFlairCssClass { get; set; }
@@ -131,8 +131,9 @@ namespace RedditToDiscordBot.Services.RedditApi.Response
         [JsonPropertyName("thumbnail")]
         public string Thumbnail { get; set; }
 
-        [JsonPropertyName("edited")]
-        public bool Edited { get; set; }
+        // Not sure how to handle this with System.Text.Json - it's sometimes a boolean and sometimes a date. Genius.
+        //[JsonPropertyName("edited")]
+        //public bool Edited { get; set; }
 
         [JsonPropertyName("author_flair_css_class")]
         public string AuthorFlairCssClass { get; set; }
@@ -162,7 +163,7 @@ namespace RedditToDiscordBot.Services.RedditApi.Response
         public string LinkFlairType { get; set; }
 
         [JsonPropertyName("wls")]
-        public int Wls { get; set; }
+        public int? Wls { get; set; }
 
         [JsonPropertyName("removed_by_category")]
         public object RemovedByCategory { get; set; }

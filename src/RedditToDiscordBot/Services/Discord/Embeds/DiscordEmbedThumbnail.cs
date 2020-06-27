@@ -1,10 +1,12 @@
-﻿namespace RedditToDiscordBot.Services.Discord.Embeds
+﻿using System;
+
+namespace RedditToDiscordBot.Services.Discord.Embeds
 {
     public class DiscordEmbedThumbnail
     {
-        public string Url { get; }
+        public Uri Url { get; }
 
-        public DiscordEmbedThumbnail(string url)
+        public DiscordEmbedThumbnail(Uri url)
         {
             Url = url;
         }

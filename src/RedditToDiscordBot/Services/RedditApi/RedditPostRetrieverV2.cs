@@ -10,6 +10,7 @@ using CSharpFunctionalExtensions;
 
 using Microsoft.Extensions.Logging;
 
+using RedditToDiscordBot.Services.RedditApi.Domain;
 using RedditToDiscordBot.Services.RedditApi.Response;
 
 namespace RedditToDiscordBot.Services.RedditApi
@@ -27,14 +28,24 @@ namespace RedditToDiscordBot.Services.RedditApi
             _httpClient.BaseAddress = new Uri("https://www.reddit.com");
         }
 
-        public async Task<Maybe<IEnumerable<RedditPost>>> GetMostPopularTodayAsync(string subreddit, CancellationToken cancellationToken = default)
+        public async Task<Maybe<IEnumerable<RedditPost>>> GetMostPopularTodayAsync(string subreddit = "all", CancellationToken cancellationToken = default)
         {
             try
             {
                 _logger.LogInformation("Getting most popular posts today for: /r/{0}", subreddit);
-                var response = await _httpClient.GetFromJsonAsync<RedditResponse>("/r/popular/top/.json").ConfigureAwait(false);
+                var response = await _httpClient.GetFromJsonAsync<RedditResponse>($"/r/{subreddit}/top/.json").ConfigureAwait(false);
 
-                var posts = response.Data.Children.Select(post => new RedditPost(new Uri($"{_httpClient.BaseAddress}{post.Data.Permalink.Remove(0, 1)}"), post.Data.Title, DateTimeOffset.FromUnixTimeSeconds((long)post.Data.CreatedUtc), post.Data.Thumbnail));
+                var posts = response.Data.Children.Select(post =>
+                    new RedditPost(
+                        permaLink: new Uri($"{_httpClient.BaseAddress}{post.Data.Permalink.Remove(0, 1)}"),
+                        subreddit: $"/r/{post.Data.Subreddit}",
+                        title: post.Data.Title,
+                        posted: DateTimeOffset.FromUnixTimeSeconds((long)post.Data.CreatedUtc),
+                        thumbnail: Uri.IsWellFormedUriString(post.Data.Thumbnail, UriKind.Absolute) ? new Uri(post.Data.Thumbnail) : null,
+                        upVotes: post.Data.Ups,
+                        awards: new Awards(post.Data.Gildings.Gid1, post.Data.Gildings.Gid2, post.Data.Gildings.Gid3),
+                        comments: post.Data.NumComments
+                    ));
 
                 _logger.LogInformation("Successfully got most popular posts today for: /r/{0}", subreddit);
                 return await Task.FromResult(Maybe<IEnumerable<RedditPost>>.From(posts)).ConfigureAwait(false);
@@ -46,14 +57,24 @@ namespace RedditToDiscordBot.Services.RedditApi
             }
         }
 
-        public async Task<Maybe<IEnumerable<RedditPost>>> GetMostControversialTodayAsync(string subreddit, CancellationToken cancellationToken = default)
+        public async Task<Maybe<IEnumerable<RedditPost>>> GetMostControversialTodayAsync(string subreddit = "all", CancellationToken cancellationToken = default)
         {
             try
             {
                 _logger.LogInformation("Getting most controversial posts today for: /r/{0}", subreddit);
-                var response = await _httpClient.GetFromJsonAsync<RedditResponse>("/r/popular/top/.json").ConfigureAwait(false);
+                var response = await _httpClient.GetFromJsonAsync<RedditResponse>($"/r/{subreddit}/controversial/.json").ConfigureAwait(false);
 
-                var posts = response.Data.Children.Select(post => new RedditPost(new Uri($"{_httpClient.BaseAddress}{post.Data.Permalink.Remove(0, 1)}"), post.Data.Title, DateTimeOffset.FromUnixTimeSeconds((long)post.Data.CreatedUtc), post.Data.Thumbnail));
+                var posts = response.Data.Children.Select(post =>
+                    new RedditPost(
+                        permaLink: new Uri($"{_httpClient.BaseAddress}{post.Data.Permalink.Remove(0, 1)}"),
+                        subreddit: $"/r/{post.Data.Subreddit}",
+                        title: post.Data.Title,
+                        posted: DateTimeOffset.FromUnixTimeSeconds((long)post.Data.CreatedUtc),
+                        thumbnail: Uri.IsWellFormedUriString(post.Data.Thumbnail, UriKind.Absolute) ? new Uri(post.Data.Thumbnail) : null,
+                        upVotes: post.Data.Ups,
+                        awards: new Awards(post.Data.Gildings.Gid1, post.Data.Gildings.Gid2, post.Data.Gildings.Gid3),
+                        comments: post.Data.NumComments
+                    ));
 
                 _logger.LogInformation("Successfully got most controversial posts today for: /r/{0}", subreddit);
                 return await Task.FromResult(Maybe<IEnumerable<RedditPost>>.From(posts)).ConfigureAwait(false);

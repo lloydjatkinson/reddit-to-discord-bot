@@ -1,8 +1,12 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 
 using CSharpFunctionalExtensions;
+
+using Humanizer;
 
 using Microsoft.Extensions.Logging;
 
@@ -11,6 +15,7 @@ using Quartz;
 using RedditToDiscordBot.Services.Discord;
 using RedditToDiscordBot.Services.Discord.Embeds;
 using RedditToDiscordBot.Services.RedditApi;
+using RedditToDiscordBot.Services.RedditApi.Domain;
 using RedditToDiscordBot.Services.Uptime;
 
 namespace RedditToDiscordBot
@@ -43,7 +48,7 @@ namespace RedditToDiscordBot
 
             //_redditPostsRetriever.Initialise();
 
-            var popular = (await _redditPostsRetriever.GetMostPopularTodayAsync("programming")).Match(
+            var popular = (await _redditPostsRetriever.GetMostPopularTodayAsync("all")).Match(
                 Some: posts => posts,
                 None: () =>
                 {
@@ -52,7 +57,7 @@ namespace RedditToDiscordBot
                 }
             );
 
-            var controversial = (await _redditPostsRetriever.GetMostControversialTodayAsync("programming")).Match(
+            var controversial = (await _redditPostsRetriever.GetMostControversialTodayAsync("all")).Match(
                 Some: posts => posts,
                 None: () =>
                 {
@@ -61,27 +66,29 @@ namespace RedditToDiscordBot
                 }
             );
 
-            var posts = popular.Concat(controversial);
-
-            //var posts = new List<RedditPost>() { new RedditPost(new Uri("https://google.com"), "Test Message", DateTimeOffset.UtcNow, null) };
+            // For now, just grab the first three. Eventually this could be "take three random" to mix things up a bit, maybe look at actual votes or awards, and don't post any we've already posted.
+            var posts = popular.Take(2).Concat(controversial.Take(1));
 
             if (posts.Any())
             {
-                // For now, just grab the first three. Eventually this could be "take three random" to mix things up a bit, maybe look at actual votes or awards.
-                var subset = posts.Take(3);
-
-                var highlights = subset
+                var highlights = posts
                     .Select(post => new DiscordEmbed(
                        title: post.Title,
-                       description: ":medal:",
+                       description: post.Subreddit,
                        url: post.PermaLink,
                        timestamp: post.Posted,
-                       color: 0xFF0000, // TODO: Find out a way of getting the nearest best colour - subreddit colour, user flair, etc. Maybe even a list of subreddit colours in config?
+                       color: 0xFF4F00, // TODO: Find out a way of getting the nearest best colour - subreddit colour, user flair, etc. Maybe even a list of subreddit colours in config?
                        thumbnail: new DiscordEmbedThumbnail(post.Thumbnail),
-                       footer: null
+                       footer: null,
+                       fields: new List<DiscordEmbedField>()
+                           {
+                               new DiscordEmbedField("Upvotes", $":arrow_up: {post.UpVotes.ToMetric(false, true, 1)}", true),
+                               //post.Awards != null ? new DiscordEmbedField("Awards", $":yellow_circle:{post.Awards.Platinum}", true) : null,
+                               new DiscordEmbedField("Comments", post.Comments.ToString(), true)
+                           }
                     ));
 
-                await _discordWebHooks.SendMessageAsync(new DiscordMessage(string.Empty, highlights));
+                await _discordWebHooks.SendMessageAsync(new DiscordMessage(string.Empty, highlights)).ConfigureAwait(false);
             }
 
             await Task.CompletedTask;

@@ -29,7 +29,10 @@ namespace RedditToDiscordBot.Services.Discord
         {
             try
             {
-                _logger.LogInformation("Posting message to Discord WebHook");
+                // /api/webhooks/723211904792789082/MFfrr24sFhfgGMhP7ejdnKC8wx0-VB_xnrNaBm3AOL0nbs5t8rlArTjxXC6x861h97WH
+                //https://discordapp.com/api/webhooks/720976101702107226/2m5l1g92z1g5vuUgWJsz-08cTj6198KR9I4MtYgtz6SqrLXFdMOzrelJWEBZHYFj0wqq
+
+                https://discordapp.com/api/webhooks/723211904792789082/MFfrr24sFhfgGMhP7ejdnKC8wx0-VB_xnrNaBm3AOL0nbs5t8rlArTjxXC6x861h97WH
                 var response = await _httpClient.PostAsJsonAsync("/api/webhooks/723211904792789082/MFfrr24sFhfgGMhP7ejdnKC8wx0-VB_xnrNaBm3AOL0nbs5t8rlArTjxXC6x861h97WH", message, cancellationToken).ConfigureAwait(false);
                 response.EnsureSuccessStatusCode();
 

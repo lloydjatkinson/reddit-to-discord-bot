@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 
 using CSharpFunctionalExtensions;
 
+using RedditToDiscordBot.Services.RedditApi.Domain;
+
 namespace RedditToDiscordBot.Services.RedditApi
 {
     public interface IRedditPostsRetriever
