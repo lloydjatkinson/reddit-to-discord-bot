@@ -1,4 +1,5 @@
 using System;
+using System.Configuration;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -9,6 +10,7 @@ using Polly.Contrib.WaitAndRetry;
 
 using Quartz.DependencyInjection.Microsoft.Extensions;
 
+using RedditToDiscordBot.Configuration;
 using RedditToDiscordBot.Services.Discord;
 using RedditToDiscordBot.Services.PreviouslyPosted;
 using RedditToDiscordBot.Services.RedditApi;
@@ -38,16 +40,20 @@ namespace RedditToDiscordBot
 #endif
                 .ConfigureServices((hostContext, services) =>
                 {
+                    services.Configure<DiscordConfiguration>(hostContext.Configuration.GetSection("DiscordConfiguration"));
+                    services.Configure<RedditConfiguration>(hostContext.Configuration.GetSection("RedditConfiguration"));
+                    services.Configure<ScheduleConfiguration>(hostContext.Configuration.GetSection("ScheduleConfiguration"));
+
                     services.AddMemoryCache();
                     services.AddQuartz();
 
                     services.AddHttpClient();
                     services
                         .AddHttpClient<IDiscordWebHooks, DiscordWebHooks>()
-                        .AddTransientHttpErrorPolicy(policy => policy.WaitAndRetryAsync(Backoff.DecorrelatedJitterBackoffV2(medianFirstRetryDelay: TimeSpan.FromSeconds(1), retryCount: 10)));
+                        .AddTransientHttpErrorPolicy(policy => policy.WaitAndRetryAsync(Backoff.DecorrelatedJitterBackoffV2(medianFirstRetryDelay: TimeSpan.FromSeconds(1), retryCount: 4)));
                     services
                         .AddHttpClient<IRedditPostsRetriever, RedditPostRetrieverV2>()
-                        .AddTransientHttpErrorPolicy(policy => policy.WaitAndRetryAsync(Backoff.DecorrelatedJitterBackoffV2(medianFirstRetryDelay: TimeSpan.FromSeconds(1), retryCount: 10)));
+                        .AddTransientHttpErrorPolicy(policy => policy.WaitAndRetryAsync(Backoff.DecorrelatedJitterBackoffV2(medianFirstRetryDelay: TimeSpan.FromSeconds(1), retryCount: 4)));
 
                     services.AddSingleton<IUptime, Uptime>();
                     services.AddTransient<IPreviouslyPosted, PreviouslyPosted>();

@@ -46,8 +46,6 @@ namespace RedditToDiscordBot
             _logger.LogInformation("I ran!");
             _logger.LogInformation("Uptime: {0}", _uptime.Bot.Friendly);
 
-            //_redditPostsRetriever.Initialise();
-
             var popular = (await _redditPostsRetriever.GetMostPopularTodayAsync("all")).Match(
                 Some: posts => posts,
                 None: () =>
@@ -88,7 +86,11 @@ namespace RedditToDiscordBot
                            }
                     ));
 
-                await _discordWebHooks.SendMessageAsync(new DiscordMessage(string.Empty, highlights)).ConfigureAwait(false);
+                (await _discordWebHooks.SendMessageAsync(new DiscordMessage(string.Empty, highlights)).ConfigureAwait(false)).Match(
+                    onSuccess: () => _logger.LogInformation("Successfully posted to all configured Webhooks"),
+                    onFailure: error => _logger.LogError("Could not post to all configured Webhooks: {0}", error)
+                );
+
             }
 
             await Task.CompletedTask;
