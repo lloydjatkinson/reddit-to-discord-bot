@@ -30,7 +30,7 @@ namespace RedditToDiscordBot.Services.Discord
             _discordConfiguration = discordConfiguration;
             _httpClient = httpClient;
 
-            _httpClient.BaseAddress = new Uri("https://discordappzzzz.com/");
+            _httpClient.BaseAddress = new Uri("https://discordapp.com/");
         }
 
         public async Task<Result> SendMessageAsync(DiscordMessage message, CancellationToken cancellationToken = default)
